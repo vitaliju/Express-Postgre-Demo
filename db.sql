@@ -1,0 +1,19 @@
+
+CREATE TABLE actors (
+    id SERIAL PRIMARY KEY,
+    firstName VARCHAR(255) NOT NULL,
+    lastName VARCHAR(255) NOT NULL,
+    dateOfBirth DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE movies (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    creationDate DATE NOT NULL,
+    actorId INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   --- FOREIGN KEY (actorId) REFERENCES actors (id) ON DELETE CASCADE
+
+);

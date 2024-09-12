@@ -21,10 +21,6 @@ const isFutureDate = (date) => new Date(date) > new Date();
 app.post('/actors', async (req, res) => {
     const { firstName, lastName, dateOfBirth } = req.body;
 
-    if (!firstName || !lastName || !dateOfBirth) {
-        return res.status(400).json({ message: 'Fields are required: firstName, lastName, and dateOfBirth.' });
-    }
-
     if (isFutureDate(dateOfBirth)) {
         return res.status(400).json({ message: 'Date of birth cannot be in the future.' });
     }
@@ -113,10 +109,6 @@ app.delete('/actors/:id', async (req, res) => {
 // Create a new movie with an associated actor
 app.post('/movies', async (req, res) => {
     const { title, creationDate, actorId } = req.body;
-
-    if (!title || !creationDate || !actorId) {
-        return res.status(400).json({ message: 'Title, creationDate, and actorId are required.' });
-    }
 
     try {
         const actorCheck = await pool.query('SELECT * FROM actors WHERE id = $1', [actorId]);
