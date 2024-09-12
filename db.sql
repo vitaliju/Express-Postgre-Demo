@@ -14,6 +14,4 @@ CREATE TABLE movies (
     creationDate DATE NOT NULL,
     actorId INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   --- FOREIGN KEY (actorId) REFERENCES actors (id) ON DELETE CASCADE
-
 );
