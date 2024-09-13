@@ -99,7 +99,7 @@ app.delete('/actors/:id', async (req, res) => {
             return res.status(404).json({ message: 'Actor not found.' });
         }
 
-        res.status(204).json({ message: 'Actor deleted' });
+        res.status(204).send();
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting actor' });
@@ -200,7 +200,7 @@ app.delete('/movies/:id', async (req, res) => {
             return res.status(404).json({ message: 'Movie not found.' });
         }
 
-        res.status(204).json({ message: 'Movie deleted' });
+        res.status(204).send();
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting movie' });
