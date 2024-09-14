@@ -149,7 +149,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/actors/{{actorId}}",
+							"raw": "http://localhost:3000/actors/34",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -157,7 +157,7 @@
 							"port": "3000",
 							"path": [
 								"actors",
-								"{{actorId}}"
+								"34"
 							]
 						}
 					},
@@ -683,12 +683,33 @@
 			"item": [
 				{
 					"name": "Cannot create movie without an associated actor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 404\r",
+									"pm.test(\"Return 404\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(404)\r",
+									"})\r",
+									"\r",
+									"// We get a string \"Actor not found.\"\r",
+									"pm.test(\"Returns correct text\", () => {\r",
+									"    const responseJson = pm.response.json()\r",
+									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Running man\",\r\n    \"creationDate\": \"1981-05-23\",\r\n    \"actorId\": 10\r\n}",
+							"raw": "{\r\n    \"title\": \"Running man\",\r\n    \"creationDate\": \"1981-05-23\",\r\n    \"actorId\": 50\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -711,6 +732,36 @@
 				},
 				{
 					"name": "Create movie successfull call",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"\r",
+									"// We get 201\r",
+									"pm.test(\"Return 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"});\r",
+									"\r",
+									"// Check that title is Over top and actorid is 3 \r",
+									"pm.test(\"Check that title and actorid are correct\", () => {\r",
+									"    const responseObject = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseObject).to.be.an('object');\r",
+									"    pm.expect(responseObject.title).to.eq(\"Over top\");\r",
+									"    pm.expect(responseObject.actorid).to.eq(3);\r",
+									"   \r",
+									"\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -739,11 +790,36 @@
 				},
 				{
 					"name": "Check created movie exists in get by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"});\r",
+									"\r",
+									"// Check that title is Over top, actor firstname is Scarlett and lastname is Johansson \r",
+									"pm.test(\"Check that title, actor first and last names are correct\", () => {\r",
+									"    const responseObject = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseObject).to.be.an('object');\r",
+									"    pm.expect(responseObject.title).to.eq(\"Over top\");\r",
+									"    pm.expect(responseObject.firstname).to.eq(\"Scarlett\");\r",
+									"    pm.expect(responseObject.lastname).to.eq(\"Johansson\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/movies/2",
+							"raw": "http://localhost:3000/movies/9",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -751,7 +827,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"2"
+								"9"
 							]
 						}
 					},
@@ -759,6 +835,25 @@
 				},
 				{
 					"name": "Check created movie exists in get all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response should be an array\", function () {\r",
+									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -782,7 +877,28 @@
 			"name": "Delete Movie Functionality",
 			"item": [
 				{
-					"name": "Delete movie which does exists return 404",
+					"name": "Cannot delete movie which does not exists return 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 404\r",
+									"pm.test(\"Return 404\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(404)\r",
+									"})\r",
+									"\r",
+									"// We get a string \"Movie not found.\"\r",
+									"pm.test(\"Returns correct text\", () => {\r",
+									"    const responseJson = pm.response.json()\r",
+									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "DELETE",
 						"header": [],
@@ -803,12 +919,42 @@
 				},
 				{
 					"name": "Create movie for further delete",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"\r",
+									"// We get 201\r",
+									"pm.test(\"Return 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"});\r",
+									"\r",
+									"// Check that title is Game over and actorid is 2 \r",
+									"pm.test(\"Check that title and actorid are correct\", () => {\r",
+									"    const responseObject = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseObject).to.be.an('object');\r",
+									"    pm.expect(responseObject.title).to.eq(\"Game over\");\r",
+									"    pm.expect(responseObject.actorid).to.eq(2);\r",
+									"   \r",
+									"\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Game over\",\r\n    \"creationDate\": \"1981-10-09\",\r\n    \"actorId\": 5\r\n}",
+							"raw": "{\r\n    \"title\": \"Game over\",\r\n    \"creationDate\": \"1981-10-09\",\r\n    \"actorId\": 2\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -831,12 +977,28 @@
 				},
 				{
 					"name": "Delete movie which does exists return 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 204\r",
+									"pm.test(\"Return 204\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(204);\r",
+									"});\r",
+									" "
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 5,\r\n    \"title\": \"Game over\",\r\n    \"creationdate\": \"1981-10-08T21:00:00.000Z\",\r\n    \"actorid\": 5,\r\n    \"created_at\": \"2024-09-12T12:15:58.571Z\"\r\n}",
+							"raw": "{\r\n    \"id\": 13,\r\n    \"title\": \"Game over\",\r\n    \"creationdate\": \"1981-10-08T21:00:00.000Z\",\r\n    \"actorid\": 2,\r\n    \"created_at\": \"2024-09-12T12:15:58.571Z\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -844,7 +1006,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/movies/5",
+							"raw": "http://localhost:3000/movies/13",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -852,7 +1014,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"5"
+								"13"
 							]
 						}
 					},
@@ -860,11 +1022,32 @@
 				},
 				{
 					"name": "Check deleted movie does not exists in get by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 404\r",
+									"pm.test(\"Return 404\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(404);\r",
+									"});\r",
+									"\r",
+									"// We get a string \"Movie not found\"\r",
+									"pm.test(\"Returns correct text\", () => {\r",
+									"    const responseJson = pm.response.json()\r",
+									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/movies/5",
+							"raw": "http://localhost:3000/movies/13",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -872,7 +1055,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"5"
+								"13"
 							]
 						}
 					},
@@ -880,6 +1063,25 @@
 				},
 				{
 					"name": "Check deleted movie does not exists in get all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response should be an array\", function () {\r",
+									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -903,7 +1105,28 @@
 			"name": "Update Movie Functionality",
 			"item": [
 				{
-					"name": "Updating movie which does exists return 404",
+					"name": "Cannot update movie which does not exists return 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 404\r",
+									"pm.test(\"Return 404\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(404);\r",
+									"});\r",
+									"\r",
+									"// We get a string \"Movie not found\"\r",
+									"pm.test(\"Returns correct text\", () => {\r",
+									"    const responseJson = pm.response.json()\r",
+									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -924,12 +1147,42 @@
 				},
 				{
 					"name": "Create movie for further update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"\r",
+									"// We get 201\r",
+									"pm.test(\"Return 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"});\r",
+									"\r",
+									"// Check that title is Angel city and actorid is 1 \r",
+									"pm.test(\"Check that title and actorid are correct\", () => {\r",
+									"    const responseObject = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseObject).to.be.an('object');\r",
+									"    pm.expect(responseObject.title).to.eq(\"Angel city\");\r",
+									"    pm.expect(responseObject.actorid).to.eq(1);\r",
+									"   \r",
+									"\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Junior\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": 3\r\n}",
+							"raw": "{\r\n    \"title\": \"Angel city\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": 1\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -952,12 +1205,38 @@
 				},
 				{
 					"name": "Updating movie which does exists",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"});\r",
+									"\r",
+									"// Check that title is Angel city update and actorid is 1 \r",
+									"pm.test(\"Check that title and actorid are correct\", () => {\r",
+									"    const responseObject = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseObject).to.be.an('object');\r",
+									"    pm.expect(responseObject.title).to.eq(\"Angel city update\");\r",
+									"    pm.expect(responseObject.actorid).to.eq(1);\r",
+									"   \r",
+									"\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Junior\",\r\n    \"creationDate\": \"1980-10-09\",\r\n    \"actorId\": 3\r\n}",
+							"raw": "{\r\n    \"title\": \"Angel city update\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": 1\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -965,7 +1244,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/movies/6",
+							"raw": "http://localhost:3000/movies/15",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -973,7 +1252,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"6"
+								"15"
 							]
 						}
 					},
@@ -981,11 +1260,36 @@
 				},
 				{
 					"name": "Check updated movie exists in get by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"});\r",
+									"\r",
+									"// Check that title is Angel city update, actor firstname is Mel and lastname is Gibson \r",
+									"pm.test(\"Check that title, actor first and last names are correct\", () => {\r",
+									"    const responseObject = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseObject).to.be.an('object');\r",
+									"    pm.expect(responseObject.title).to.eq(\"Angel city update\");\r",
+									"    pm.expect(responseObject.firstname).to.eq(\"Mel\");\r",
+									"    pm.expect(responseObject.lastname).to.eq(\"Gibson\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/movies/6",
+							"raw": "http://localhost:3000/movies/15",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -993,7 +1297,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"6"
+								"15"
 							]
 						}
 					},
@@ -1001,6 +1305,25 @@
 				},
 				{
 					"name": "Check updated movie exists in get all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response should be an array\", function () {\r",
+									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -1046,7 +1369,12 @@
 	"variable": [
 		{
 			"key": "actorId",
-			"value": "5",
+			"value": "34",
+			"type": "string"
+		},
+		{
+			"key": "movieId",
+			"value": "4",
 			"type": "string"
 		}
 	]
