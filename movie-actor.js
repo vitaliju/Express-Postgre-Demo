@@ -73,7 +73,7 @@ app.put('/actors/:id', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'UPDATE actors SET firstName = $1, lastName = $2, dateOfBirth = $3 WHERE id = $4 RETURNING *',
+            'UPDATE actors SET first_name = $1, last_name = $2, date_of_birth = $3 WHERE id = $4 RETURNING *',
             [firstName, lastName, dateOfBirth, id]
         );
 
