@@ -27,7 +27,7 @@ app.post('/actors', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'INSERT INTO actors (firstName, lastName, dateOfBirth) VALUES ($1, $2, $3) RETURNING *',
+            'INSERT INTO actors (first_name, last_name, date_of_birth) VALUES ($1, $2, $3) RETURNING *',
             [firstName, lastName, dateOfBirth]
         );
         res.status(201).json(result.rows[0]);
@@ -73,7 +73,7 @@ app.put('/actors/:id', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'UPDATE actors SET firstName = $1, lastName = $2, dateOfBirth = $3 WHERE id = $4 RETURNING *',
+            'UPDATE actors SET first_name = $1, last_name = $2, date_of_birth = $3 WHERE id = $4 RETURNING *',
             [firstName, lastName, dateOfBirth, id]
         );
 
@@ -118,7 +118,7 @@ app.post('/movies', async (req, res) => {
         }
 
         const result = await pool.query(
-            'INSERT INTO movies (title, creationDate, actorId) VALUES ($1, $2, $3) RETURNING *',
+            'INSERT INTO movies (title, creation_date, actor_id) VALUES ($1, $2, $3) RETURNING *',
             [title, creationDate, actorId]
         );
 
@@ -174,7 +174,7 @@ app.put('/movies/:id', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'UPDATE movies SET title = $1, creationDate = $2, actorId = $3 WHERE id = $4 RETURNING *',
+            'UPDATE movies SET title = $1, creation_date = $2, actor_id = $3 WHERE id = $4 RETURNING *',
             [title, creationDate, actorId, id]
         );
 
