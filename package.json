@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "dev": "nodemon movie-actor.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "newman run Express-json-collection.postman_collection.json"
     },
     "keywords": [],
     "author": "",
@@ -15,6 +15,7 @@
         "pg": "^8.12.0"
     },
     "devDependencies": {
+        "newman": "^6.2.1",
         "nodemon": "^3.1.4"
     }
 }
