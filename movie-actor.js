@@ -133,9 +133,9 @@ app.post('/movies', async (req, res) => {
 app.get('/movies', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT movies.id, movies.title, movies.creationDate, actors.firstName, actors.lastName
+            SELECT movies.id, movies.title, movies.creation_date, actors.first_name, actors.last_name
             FROM movies
-            JOIN actors ON movies.actorId = actors.id
+            JOIN actors ON movies.actor_id = actors.id
         `);
         res.json(result.rows);
     } catch (error) {
@@ -150,9 +150,9 @@ app.get('/movies/:id', async (req, res) => {
 
     try {
         const result = await pool.query(`
-            SELECT movies.id, movies.title, movies.creationDate, actors.firstName, actors.lastName
+            SELECT movies.id, movies.title, movies.creation_date, actors.first_name, actors.last_name
             FROM movies
-            JOIN actors ON movies.actorId = actors.id
+            JOIN actors ON movies.actor_id = actors.id
             WHERE movies.id = $1
         `, [id]);
 
