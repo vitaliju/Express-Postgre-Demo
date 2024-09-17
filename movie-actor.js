@@ -7,7 +7,7 @@ const port = 3000;
 const pool = new Pool({
     user: 'postgres',   // replace with your PostgreSQL username
     host: 'localhost',
-    database: 'movies-db', // replace with your PostgreSQL database name
+    database: 'movies-actors-db', // replace with your PostgreSQL database name
     password: 'postgres', // replace with your PostgreSQL password
     port: 5432,
 });
