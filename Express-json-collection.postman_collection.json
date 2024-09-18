@@ -16,16 +16,16 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 400\r",
+									"// Check if 400 is returned\r",
 									"pm.test(\"Return 400\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(400)\r",
-									"})\r",
-									"\r",
-									"// We get a string \"Date of birth cannot be in the future.\"\r",
+									"    pm.expect(pm.response.code).to.eq(400);\r",
+									"});\r",
+									"// Check if string \"Date of birth cannot be in the future.\" is returned\r",
 									"pm.test(\"Returns correct text\", () => {\r",
 									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Date of birth cannot be in the future.\")\r",
-									"})"
+									"    pm.expect(responseJson.message).to.eq(\"Date of birth cannot be in the future.\");\r",
+									"});\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -67,22 +67,27 @@
 								"exec": [
 									"const responseJson = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
 									"\r",
-									"// We get 201\r",
-									"pm.test(\"Return 201\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
+									"pm.collectionVariables.set(\"actorFirstName\", requestJson.firstName);\r",
+									"pm.collectionVariables.set(\"actorLastName\", requestJson.lastName);\r",
+									"\r",
+									"// Status code is 201\r",
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
 									"});\r",
 									"\r",
-									"// Check that firstname is Scarlett, lastname is Johansson \r",
-									"pm.test(\"Check that first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name  match \r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.first_name).to.eq(requestJson.firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(requestJson.lastName);\r",
+									"});\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Scarlett\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Johansson\");\r",
-									"   \r",
-									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									""
 								],
@@ -96,7 +101,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"firstName\": \"Scarlett\",\r\n    \"lastName\": \"Johansson\",\r\n    \"dateOfBirth\": \"1984-03-06\"\r\n}",
+							"raw": "{\r\n    \"firstName\": \"Tom\",\r\n    \"lastName\": \"Cruse\",\r\n    \"dateOfBirth\": \"1984-03-06\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -125,20 +130,39 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"const responseJson = pm.response.json();\r",
 									"\r",
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"// Status is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"// Check that firstname is Jhon, lastname is Doe \r",
-									"pm.test(\"Check that first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name match\r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.to.be.above(0);\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Jhon\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Doe\");\r",
-									"});"
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
+									"    pm.expect(responseJson.first_name).to.eq(firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(lastName);\r",
+									"   \r",
+									"});\r",
+									"\r",
+									"// date_of_birth and created_at are present and not empty\r",
+									"pm.test(\"date_of_birth and created_at are present and not empty\", () => {\r",
+									"    pm.expect(responseJson).to.have.property('date_of_birth').that.is.not.empty;\r",
+									"    pm.expect(responseJson).to.have.property('created_at').that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -149,7 +173,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/actors/34",
+							"raw": "http://localhost:3000/actors/{{actorId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -157,7 +181,7 @@
 							"port": "3000",
 							"path": [
 								"actors",
-								"34"
+								"{{actorId}}"
 							]
 						}
 					},
@@ -170,13 +194,26 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"// Status is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response should be an array\", function () {\r",
-									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"// The array contains first_name and last_name and actor_id \r",
+									"pm.test(\"Check if array contains first_name and last_name and actor_id\", () => {\r",
+									"    const actorId = pm.collectionVariables.get(\"actorId\");\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
+									"\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const found = jsonData.some(function (item) {\r",
+									"        return item.first_name === firstName && item.last_name === lastName && item.id == actorId;\r",
+									"    });\r",
+									"    pm.expect(found).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -205,7 +242,7 @@
 			]
 		},
 		{
-			"name": "Delete Functionality",
+			"name": "Delete Actor Functionality",
 			"item": [
 				{
 					"name": "Cannot delete actor which does not exists return 404",
@@ -214,16 +251,28 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 404\r",
-									"pm.test(\"Return 404\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(404)\r",
-									"})\r",
+									"// Returned status code 404\r",
+									"pm.test(\"Response status code is 404\", () => {\r",
+									"  pm.expect(pm.response.code).to.equal(404);\r",
+									"});\r",
 									"\r",
-									"// We get a string \"Date of birth cannot be in the future.\"\r",
-									"pm.test(\"Returns correct text\", () => {\r",
-									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\")\r",
-									"})"
+									"// Check if a string \"Actor not found.\" is returned\r",
+									"pm.test(\"Verify that the message is correct\", () => {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.eq(\"Actor not found.\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -257,20 +306,27 @@
 								"exec": [
 									"const responseJson = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
 									"\r",
-									"// We get 201\r",
-									"pm.test(\"Return 201\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
+									"pm.collectionVariables.set(\"actorFirstName\", requestJson.firstName);\r",
+									"pm.collectionVariables.set(\"actorLastName\", requestJson.lastName);\r",
+									"\r",
+									"// Status code is 201\r",
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
 									"});\r",
 									"\r",
-									"// Check that firstname is Tom, lastname is Ford \r",
-									"pm.test(\"Check that first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name match\r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.first_name).to.eq(requestJson.firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(requestJson.lastName);\r",
+									"});\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Tom\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Ford\");\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -317,7 +373,9 @@
 									"    pm.expect(pm.response.code).to.eq(204);\r",
 									"});\r",
 									"\r",
-									""
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -329,7 +387,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 32,\r\n    \"firstname\": \"Tom\",\r\n    \"lastname\": \"Ford\",\r\n    \"dateofbirth\": \"1955-03-05T21:00:00.000Z\",\r\n    \"created_at\": \"2024-09-13T12:25:42.244Z\"\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -337,7 +395,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/actors/32",
+							"raw": "http://localhost:3000/actors/{{actorId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -345,7 +403,7 @@
 							"port": "3000",
 							"path": [
 								"actors",
-								"32"
+								"{{actorId}}"
 							]
 						}
 					},
@@ -358,16 +416,20 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 404\r",
-									"pm.test(\"Return 404\", () => {\r",
+									"// We get status code 404\r",
+									"pm.test(\"Status code 404 is returned\", () => {\r",
 									"    pm.expect(pm.response.code).to.eq(404);\r",
 									"});\r",
 									"\r",
-									"// We get a string \"Actor not found.\"\r",
-									"pm.test(\"Returns correct text\", () => {\r",
-									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\")\r",
-									"})"
+									"// Check if string \"Actor not found.\" is returned\r",
+									"pm.test(\"Verify that message is correct\", () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -378,7 +440,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/actors/32",
+							"raw": "http://localhost:3000/actors/{{actorId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -386,7 +448,7 @@
 							"port": "3000",
 							"path": [
 								"actors",
-								"32"
+								"{{actorId}}"
 							]
 						}
 					},
@@ -399,14 +461,23 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"// Status code is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response should be an array\", function () {\r",
-									"    pm.expect(pm.response.json()).to.be.an('array');\r",
-									"});"
+									"// Check that deleted actor does not exists in get all\r",
+									"pm.test(\"Deleted actors should not be present in the response\", () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    responseJson.forEach(function(actor) {\r",
+									"        pm.expect(actor.deleted).to.not.exist;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -442,16 +513,21 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 404\r",
-									"pm.test(\"Return 404\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(404)\r",
-									"})\r",
+									"// Returned status code 404\r",
+									"pm.test(\"Response status code is 404\", () => {\r",
+									"  pm.expect(pm.response.code).to.equal(404);\r",
+									"});\r",
 									"\r",
-									"// We get a string \"Date of birth cannot be in the future.\"\r",
-									"pm.test(\"Returns correct text\", () => {\r",
-									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\")\r",
-									"})"
+									"// Check if a string \"Actor not found.\" is returned\r",
+									"pm.test(\"Verify that the message is correct\", () => {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData.message).to.eq(\"Actor not found.\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -494,20 +570,25 @@
 								"exec": [
 									"const responseJson = pm.response.json();\r",
 									"\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
+									"\r",
 									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
 									"\r",
-									"// We get 201\r",
-									"pm.test(\"Return 201\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"// Status code is 201\r",
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
 									"});\r",
 									"\r",
-									"// Check that firstname is Jhon, lastname is Doe \r",
-									"pm.test(\"Check that first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name match\r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.first_name).to.eq(requestJson.firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(requestJson.lastName);\r",
+									"});\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Jhon\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Doe\");\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -548,18 +629,29 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
+									"\r",
+									"pm.collectionVariables.set(\"actorFirstName\", requestJson.firstName);\r",
+									"pm.collectionVariables.set(\"actorLastName\", requestJson.lastName);\r",
+									"\r",
+									"// Status code is 200\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
 									"});\r",
 									"\r",
-									"// Check that firstname is Jhon, lastname is Donovan \r",
-									"pm.test(\"Check that first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name match\r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    const actorId = pm.collectionVariables.get('actorId');\r",
+									"    pm.expect(responseJson.id).to.eq(actorId);\r",
+									"    pm.expect(responseJson.first_name).to.eq(requestJson.firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(requestJson.lastName);\r",
+									"});\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Jhon\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Donovan\");\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -580,7 +672,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/actors/36",
+							"raw": "http://localhost:3000/actors/{{actorId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -588,31 +680,44 @@
 							"port": "3000",
 							"path": [
 								"actors",
-								"36"
+								"{{actorId}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Check updated actor exists in get by id",
+					"name": "Check updated actor in get by id",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"// Status is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"// Check that firstname is Jhon, lastname is Donovan \r",
-									"pm.test(\"Check that first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name match\r",
+									"pm.test(\"First and last names match update info\", () => {\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Jhon\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Donovan\");\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.to.be.above(0);\r",
+									"    pm.expect(responseJson.first_name).to.eq(firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(lastName);\r",
+									"});\r",
+									"\r",
+									"// date_of_birth and created_at are present and not empty\r",
+									"pm.test(\"date_of_birth and created_at are present and not empty\", () => {\r",
+									"    pm.expect(responseJson).to.have.property('date_of_birth').that.is.not.empty;\r",
+									"    pm.expect(responseJson).to.have.property('created_at').that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -624,7 +729,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/actors/36",
+							"raw": "http://localhost:3000/actors/{{actorId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -632,26 +737,39 @@
 							"port": "3000",
 							"path": [
 								"actors",
-								"36"
+								"{{actorId}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Check updated actor exists in get all",
+					"name": "Check updated actor in get all",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"// Status is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response should be an array\", function () {\r",
-									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"// The array contains first_name 'Jhon' and last_name 'Donovan'\r",
+									"pm.test(\"Check if array contains first_name 'Jhon' and last_name 'Donovan'\", () => {\r",
+									"    const actorId = pm.collectionVariables.get(\"actorId\");\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
+									"\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const found = jsonData.some(function (item) {\r",
+									"        return item.first_name === firstName && item.last_name === lastName && item.id == actorId;\r",
+									"    });\r",
+									"    pm.expect(found).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -682,22 +800,259 @@
 			"name": "Create Movie Functionality",
 			"item": [
 				{
+					"name": "Create actor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
+									"\r",
+									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
+									"pm.collectionVariables.set(\"actorFirstName\", requestJson.firstName);\r",
+									"pm.collectionVariables.set(\"actorLastName\", requestJson.lastName);\r",
+									"\r",
+									"// Status code is 201\r",
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
+									"});\r",
+									"\r",
+									"// Check that first_name, last_name  match \r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.first_name).to.eq(requestJson.firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(requestJson.lastName);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Tony\",\r\n    \"lastName\": \"Jaa\",\r\n    \"dateOfBirth\": \"1984-03-06\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/actors/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"actors",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create movie successfull call",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
+									"\r",
+									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"pm.collectionVariables.set(\"movieTitle\", requestJson.title);\r",
+									"pm.collectionVariables.set(\"actorId\", requestJson.id);\r",
+									"\r",
+									"// We get 201\r",
+									"pm.test(\"Return 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
+									"});\r",
+									"\r",
+									"// Check that title and actorid are correct \r",
+									"pm.test(\"Title and actorid match input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.title).to.eq(requestJson.title);\r",
+									"    pm.expect(responseJson.actorid).to.eq(requestJson.id);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Over top\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": {{actorId}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/movies",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"movies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check created movie exists in get by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"// We get 200\r",
+									"pm.test(\"Return 200\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"});\r",
+									"\r",
+									"// Check that title, actor first_name and last_name matches input \r",
+									"pm.test(\"Title, actor first and last names match input\", () => {\r",
+									"    const movieTitle = pm.collectionVariables.get(\"movieTitle\");\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
+									"\r",
+									"    pm.expect(responseJson.first_name).to.eq(firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(lastName);\r",
+									"    pm.expect(responseJson.title).to.eq(movieTitle);\r",
+									"});\r",
+									"\r",
+									"// Creation_date are present and not empty\r",
+									"pm.test(\"Creation_date are present and not empty\", () => {\r",
+									"     pm.expect(responseJson).to.have.property('creation_date').that.is.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/movies/{{movieId}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"movies",
+								"{{movieId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check created movie exists in get all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Status is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// The array contains movie_id, title, first_name and last_name \r",
+									"pm.test(\"Check if array contains movie_id, title, first_name and last_name\", () => {\r",
+									"    const movieId = pm.collectionVariables.get(\"movieId\");\r",
+									"    const movieTitle = pm.collectionVariables.get(\"movieTitle\");\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
+									"\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const found = jsonData.some(function (item) {\r",
+									"        return item.id === movieId && item.title === movieTitle \r",
+									"         && item.first_name === firstName \r",
+									"         && item.last_name === lastName \r",
+									"    });\r",
+									"    pm.expect(found).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/movies",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"movies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Cannot create movie without an associated actor",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 404\r",
-									"pm.test(\"Return 404\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(404)\r",
-									"})\r",
+									"// Status code is 404\r",
+									"pm.test(\"Status code 404 is returned\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(404);\r",
+									"});\r",
 									"\r",
-									"// We get a string \"Actor not found.\"\r",
-									"pm.test(\"Returns correct text\", () => {\r",
+									"// Check if a string \"Actor not found.\" is correct\r",
+									"pm.test(\"Returns correct message\", () => {\r",
 									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\")\r",
-									"})"
+									"    pm.expect(responseJson.message).to.eq(\"Actor not found.\");\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -729,147 +1084,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Create movie successfull call",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const responseJson = pm.response.json();\r",
-									"\r",
-									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
-									"\r",
-									"// We get 201\r",
-									"pm.test(\"Return 201\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(201)\r",
-									"});\r",
-									"\r",
-									"// Check that title is Over top and actorid is 3 \r",
-									"pm.test(\"Check that title and actorid are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
-									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.title).to.eq(\"Over top\");\r",
-									"    pm.expect(responseObject.actorid).to.eq(3);\r",
-									"   \r",
-									"\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Over top\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": 3\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/movies",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"movies"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check created movie exists in get by id",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200)\r",
-									"});\r",
-									"\r",
-									"// Check that title is Over top, actor firstname is Scarlett and lastname is Johansson \r",
-									"pm.test(\"Check that title, actor first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
-									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.title).to.eq(\"Over top\");\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Scarlett\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Johansson\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/movies/9",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"movies",
-								"9"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check created movie exists in get all",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response should be an array\", function () {\r",
-									"    pm.expect(pm.response.json()).to.be.an('array');\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/movies",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"movies"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -885,14 +1099,14 @@
 								"exec": [
 									"// We get 404\r",
 									"pm.test(\"Return 404\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(404)\r",
-									"})\r",
+									"    pm.expect(pm.response.code).to.eq(404);\r",
+									"});\r",
 									"\r",
 									"// We get a string \"Movie not found.\"\r",
 									"pm.test(\"Returns correct text\", () => {\r",
 									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\")\r",
-									"})"
+									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\");\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -925,23 +1139,31 @@
 							"script": {
 								"exec": [
 									"const responseJson = pm.response.json();\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
 									"\r",
 									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"pm.collectionVariables.set(\"movieTitle\", requestJson.title);\r",
+									"pm.collectionVariables.set(\"actorId\", requestJson.id);\r",
 									"\r",
 									"// We get 201\r",
 									"pm.test(\"Return 201\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
 									"});\r",
 									"\r",
-									"// Check that title is Game over and actorid is 2 \r",
-									"pm.test(\"Check that title and actorid are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that title and actorid are correct \r",
+									"pm.test(\"Title and actorid match input\", () => {\r",
+									"    const responseJson = pm.response.json();\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.title).to.eq(\"Game over\");\r",
-									"    pm.expect(responseObject.actorid).to.eq(2);\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.title).to.eq(requestJson.title);\r",
+									"    pm.expect(responseJson.actorid).to.eq(requestJson.id);\r",
 									"   \r",
 									"\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -954,7 +1176,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Game over\",\r\n    \"creationDate\": \"1981-10-09\",\r\n    \"actorId\": 2\r\n}",
+							"raw": "{\r\n    \"title\": \"Thunder cat\",\r\n    \"creationDate\": \"1981-10-09\",\r\n    \"actorId\": 2\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -986,7 +1208,10 @@
 									"pm.test(\"Return 204\", () => {\r",
 									"    pm.expect(pm.response.code).to.eq(204);\r",
 									"});\r",
-									" "
+									" \r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"}); "
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -998,7 +1223,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 13,\r\n    \"title\": \"Game over\",\r\n    \"creationdate\": \"1981-10-08T21:00:00.000Z\",\r\n    \"actorid\": 2,\r\n    \"created_at\": \"2024-09-12T12:15:58.571Z\"\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1006,7 +1231,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/movies/13",
+							"raw": "http://localhost:3000/movies/{{movieId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1014,7 +1239,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"13"
+								"{{movieId}}"
 							]
 						}
 					},
@@ -1035,8 +1260,12 @@
 									"// We get a string \"Movie not found\"\r",
 									"pm.test(\"Returns correct text\", () => {\r",
 									"    const responseJson = pm.response.json()\r",
-									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\")\r",
-									"})"
+									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1047,7 +1276,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/movies/13",
+							"raw": "http://localhost:3000/movies/{{movieId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1055,7 +1284,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"13"
+								"{{movieId}}"
 							]
 						}
 					},
@@ -1068,13 +1297,21 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"// Status code is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response should be an array\", function () {\r",
-									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"// Check that deleted movie does not exists in get all\r",
+									"pm.test(\"Deleted movie should not be present in the response\", () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    responseJson.forEach(function(movie) {\r",
+									"        pm.expect(movie.deleted).to.not.exist;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1120,7 +1357,9 @@
 									"pm.test(\"Returns correct text\", () => {\r",
 									"    const responseJson = pm.response.json()\r",
 									"    pm.expect(responseJson.message).to.eq(\"Movie not found.\")\r",
-									"})"
+									"});\r",
+									"\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1146,7 +1385,7 @@
 					"response": []
 				},
 				{
-					"name": "Create movie for further update",
+					"name": "Create actor",
 					"event": [
 						{
 							"listen": "test",
@@ -1154,22 +1393,27 @@
 								"exec": [
 									"const responseJson = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
 									"\r",
-									"// We get 201\r",
-									"pm.test(\"Return 201\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(201)\r",
+									"pm.collectionVariables.set(\"actorId\", responseJson.id);\r",
+									"pm.collectionVariables.set(\"actorFirstName\", requestJson.firstName);\r",
+									"pm.collectionVariables.set(\"actorLastName\", requestJson.lastName);\r",
+									"\r",
+									"// Status code is 201\r",
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
 									"});\r",
 									"\r",
-									"// Check that title is Angel city and actorid is 1 \r",
-									"pm.test(\"Check that title and actorid are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that first_name, last_name  match \r",
+									"pm.test(\"First and last names matches input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.first_name).to.eq(requestJson.firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(requestJson.lastName);\r",
+									"});\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.title).to.eq(\"Angel city\");\r",
-									"    pm.expect(responseObject.actorid).to.eq(1);\r",
-									"   \r",
-									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1182,7 +1426,68 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Angel city\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": 1\r\n}",
+							"raw": "{\r\n    \"firstName\": \"Jet\",\r\n    \"lastName\": \"Lee\",\r\n    \"dateOfBirth\": \"1984-03-06\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/actors/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"actors",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create movie for further update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
+									"\r",
+									"pm.collectionVariables.set(\"movieId\", responseJson.id);\r",
+									"\r",
+									"// Status code is 201\r",
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.expect(pm.response.code).to.eq(201);\r",
+									"});\r",
+									"\r",
+									"// Check that movieTitle match input\r",
+									"pm.test(\"Movie title match input\", () => {\r",
+									"    pm.expect(responseJson.id).to.be.a('number').and.be.above(0);\r",
+									"    pm.expect(responseJson.title).to.eq(requestJson.title);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Angel city\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": {{actorId}}\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1210,20 +1515,26 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"const responseJson = pm.response.json();\r",
+									"const requestBody = pm.request.body.raw;\r",
+									"const requestJson = JSON.parse(requestBody);\r",
+									"\r",
+									"pm.collectionVariables.set(\"movieTitle\", requestJson.title);\r",
+									"\r",
 									"// We get 200\r",
 									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
 									"});\r",
 									"\r",
-									"// Check that title is Angel city update and actorid is 1 \r",
-									"pm.test(\"Check that title and actorid are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that title and movie_id match input \r",
+									"pm.test(\"Title and movieId match input\", () => {\r",
+									"    const movieId = pm.collectionVariables.get(\"movieId\");\r",
+									"    pm.expect(responseJson.id).to.eq(movieId);\r",
+									"    pm.expect(responseJson.title).to.eq(requestJson.title);\r",
+									"});\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.title).to.eq(\"Angel city update\");\r",
-									"    pm.expect(responseObject.actorid).to.eq(1);\r",
-									"   \r",
-									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1236,7 +1547,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Angel city update\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": 1\r\n}",
+							"raw": "{\r\n    \"title\": \"Angel city update\",\r\n    \"creationDate\": \"1991-10-09\",\r\n    \"actorId\": {{actorId}}\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1244,7 +1555,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/movies/15",
+							"raw": "http://localhost:3000/movies/{{movieId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1252,7 +1563,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"15"
+								"{{movieId}}"
 							]
 						}
 					},
@@ -1267,17 +1578,23 @@
 								"exec": [
 									"// We get 200\r",
 									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200)\r",
+									"    pm.expect(pm.response.code).to.eq(200);\r",
 									"});\r",
 									"\r",
-									"// Check that title is Angel city update, actor firstname is Mel and lastname is Gibson \r",
-									"pm.test(\"Check that title, actor first and last names are correct\", () => {\r",
-									"    const responseObject = pm.response.json();\r",
+									"// Check that title, actor first_name and last_name matches input \r",
+									"pm.test(\"Title, actor first and last names match input\", () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    const movieTitle = pm.collectionVariables.get(\"movieTitle\");\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
 									"\r",
-									"    pm.expect(responseObject).to.be.an('object');\r",
-									"    pm.expect(responseObject.title).to.eq(\"Angel city update\");\r",
-									"    pm.expect(responseObject.firstname).to.eq(\"Mel\");\r",
-									"    pm.expect(responseObject.lastname).to.eq(\"Gibson\");\r",
+									"    pm.expect(responseJson.first_name).to.eq(firstName);\r",
+									"    pm.expect(responseJson.last_name).to.eq(lastName);\r",
+									"    pm.expect(responseJson.title).to.eq(movieTitle);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1289,7 +1606,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/movies/15",
+							"raw": "http://localhost:3000/movies/{{movieId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1297,7 +1614,7 @@
 							"port": "3000",
 							"path": [
 								"movies",
-								"15"
+								"{{movieId}}"
 							]
 						}
 					},
@@ -1310,13 +1627,29 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// We get 200\r",
-									"pm.test(\"Return 200\", () => {\r",
-									"    pm.expect(pm.response.code).to.eq(200);\r",
+									"// Status is 200\r",
+									"pm.test(\"Response status code is 200\", () => {\r",
+									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response should be an array\", function () {\r",
-									"    pm.expect(pm.response.json()).to.be.an('array');\r",
+									"// The array contains movie_id, title, first_name and last_name \r",
+									"pm.test(\"Check if array contains movie_id, title, first_name and last_name\", () => {\r",
+									"    const movieId = pm.collectionVariables.get(\"movieId\");\r",
+									"    const movieTitle = pm.collectionVariables.get(\"movieTitle\");\r",
+									"    const firstName = pm.collectionVariables.get(\"actorFirstName\");\r",
+									"    const lastName = pm.collectionVariables.get(\"actorLastName\");\r",
+									"\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const found = jsonData.some(function (item) {\r",
+									"        return item.id === movieId && item.title === movieTitle \r",
+									"         && item.first_name === firstName \r",
+									"         && item.last_name === lastName \r",
+									"    });\r",
+									"    pm.expect(found).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 1s\", () => {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1342,6 +1675,88 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Check actor which does not exists in get by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Returned status code 404\r",
+							"pm.test(\"Response status code is 404\", () => {\r",
+							"  pm.expect(pm.response.code).to.equal(404);\r",
+							"});\r",
+							"\r",
+							"// Check if a string \"Actor not found.\" is returned\r",
+							"pm.test(\"Verify that the message is correct\", () => {\r",
+							"    const responseData = pm.response.json();\r",
+							"    pm.expect(responseData.message).to.eq(\"Actor not found.\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/actors/1000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"actors",
+						"1000"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check movie which does not exists in get by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// We get 404\r",
+							"pm.test(\"Return 404\", () => {\r",
+							"    pm.expect(pm.response.code).to.eq(404);\r",
+							"});\r",
+							"\r",
+							"// We get a string \"Movie not found.\"\r",
+							"pm.test(\"Returns correct text\", () => {\r",
+							"    const responseJson = pm.response.json()\r",
+							"    pm.expect(responseJson.message).to.eq(\"Movie not found.\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/movies/1000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"movies",
+						"1000"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [
@@ -1369,13 +1784,23 @@
 	"variable": [
 		{
 			"key": "actorId",
-			"value": "34",
-			"type": "string"
+			"value": ""
+		},
+		{
+			"key": "actorFirstName",
+			"value": ""
+		},
+		{
+			"key": "actorLastName",
+			"value": ""
 		},
 		{
 			"key": "movieId",
-			"value": "4",
-			"type": "string"
+			"value": ""
+		},
+		{
+			"key": "movieTitle",
+			"value": ""
 		}
 	]
 }
